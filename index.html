@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#b3282d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Mandarin with Claude</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-user-select: none; user-select: none;
+      -webkit-tap-highlight-color: transparent; }
+  html { touch-action: manipulation; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: #faf6f0;
+    color: #2b2118;
+    min-height: 100vh;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  #app { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0 14px;
+  }
+  .topbar .home-btn {
+    background: none; border: none; font-size: 26px; cursor: pointer; padding: 6px 10px;
+  }
+  .topbar .crumb { font-size: 15px; color: #8a7a68; text-align: right; }
+
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  h2 { font-size: 22px; margin-bottom: 10px; }
+  .subtitle { color: #8a7a68; margin-bottom: 20px; font-size: 16px; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #eadfd2;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(80,50,20,.06);
+  }
+
+  .hanzi { font-size: 64px; text-align: center; line-height: 1.2; margin: 8px 0; }
+  .hanzi-small { font-size: 40px; }
+  .pinyin { font-size: 28px; text-align: center; color: #b3282d; font-weight: 600; margin-bottom: 4px; }
+  .english { font-size: 19px; text-align: center; color: #6b5d4e; margin-bottom: 14px; }
+
+  button.big {
+    display: block; width: 100%;
+    min-height: 58px;
+    font-size: 19px; font-weight: 600;
+    border: none; border-radius: 14px;
+    cursor: pointer;
+    margin: 10px 0;
+    padding: 14px 18px;
+    color: #fff;
+    background: #b3282d;
+    transition: transform .06s;
+  }
+  button.big:active { transform: scale(.98); }
+  button.big.green  { background: #2e7d32; }
+  button.big.blue   { background: #1565c0; }
+  button.big.amber  { background: #e8930c; }
+  button.big.grey   { background: #efe7db; color: #2b2118; font-weight: 500; }
+  button.big.outline {
+    background: #fff; color: #b3282d; border: 2px solid #b3282d;
+  }
+  button.big:disabled { opacity: .45; cursor: default; }
+
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row button.big { flex: 1; }
+
+  .progressbar {
+    height: 8px; background: #eee3d4; border-radius: 4px; margin-bottom: 18px; overflow: hidden;
+  }
+  .progressbar > div { height: 100%; background: #b3282d; border-radius: 4px; transition: width .3s; }
+
+  .feedback {
+    border-radius: 12px; padding: 14px 16px; margin-top: 12px; font-size: 17px;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.good { background: #e6f4e6; border: 1px solid #bfe3bf; color: #1d5e20; }
+  .feedback.bad  { background: #fdecea; border: 1px solid #f5c6c2; color: #8c1d18; }
+  .feedback.info { background: #eaf2fb; border: 1px solid #c5d9f1; color: #174a8c; }
+
+  .tone-svg { display: block; margin: 0 auto 6px; }
+
+  .tone-chips { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
+  .chip {
+    background: #faf6f0; border: 1px solid #eadfd2; border-radius: 10px;
+    padding: 8px 12px; text-align: center; min-width: 72px;
+  }
+  .chip svg { display: block; margin: 0 auto 2px; }
+  .chip .chip-p { font-weight: 600; color: #b3282d; font-size: 17px; }
+  .chip .chip-t { font-size: 13px; color: #8a7a68; }
+  .sandhi {
+    font-size: 14px; color: #6b5335; background: #fdf3df; border: 1px solid #f0dcaf;
+    border-radius: 10px; padding: 8px 12px; margin-top: 4px;
+  }
+
+  .lesson-item {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border: 1px solid #eadfd2; border-radius: 16px;
+    padding: 18px; margin-bottom: 12px; cursor: pointer;
+  }
+  .lesson-item .num {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #b3282d; color: #fff; font-size: 20px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .lesson-item.locked { opacity: .5; cursor: default; }
+  .lesson-item.locked .num { background: #c9bba6; }
+  .lesson-item .info { flex: 1; }
+  .lesson-item .info .t { font-weight: 600; font-size: 18px; }
+  .lesson-item .info .d { font-size: 15px; color: #8a7a68; }
+  .lesson-item .done-tick { font-size: 22px; }
+
+  .streak {
+    text-align: center; font-size: 16px; color: #8a7a68; margin-bottom: 18px;
+  }
+  .quiz-option {
+    display: block; width: 100%;
+    min-height: 54px; font-size: 18px;
+    background: #fff; border: 2px solid #d8cbb8; border-radius: 12px;
+    margin: 8px 0; padding: 12px 16px; cursor: pointer; text-align: left;
+    color: #2b2118;
+  }
+  .quiz-option.correct { background: #e6f4e6; border-color: #2e7d32; }
+  .quiz-option.wrong   { background: #fdecea; border-color: #b3282d; }
+  .diag { font-size: 15px; color: #6b5d4e; margin-top: 10px; white-space: pre-line; }
+  .tip {
+    background: #fdf3df; border: 1px solid #f0dcaf; border-radius: 12px;
+    padding: 12px 14px; font-size: 15px; color: #6b5335; margin-top: 16px;
+  }
+  .center { text-align: center; }
+  .big-emoji { font-size: 56px; text-align: center; margin: 10px 0; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+
+/* ============================================================
+   DATA — lessons are plain data; adding Lesson 2 means adding
+   another object to LESSONS.
+   ============================================================ */
+
+const TONES = [
+  { n: 1, mark: "ā", name: "First tone — high and flat",
+    hanzi: "妈", pinyin: "mā", meaning: "mother",
+    desc: "Hold your voice high and level, like singing one steady note: maaa.",
+    accept: ["妈", "媽"],
+    path: "M10,30 L110,30" },
+  { n: 2, mark: "á", name: "Second tone — rising",
+    hanzi: "麻", pinyin: "má", meaning: "hemp / numb",
+    desc: "Rise from the middle upwards, like asking a question in English: ma?",
+    accept: ["麻", "嘛"],
+    path: "M10,55 L110,15" },
+  { n: 3, mark: "ǎ", name: "Third tone — dip down, then up",
+    hanzi: "马", pinyin: "mǎ", meaning: "horse",
+    desc: "Start mid, dip low, then rise. Like a doubtful \"we-ell...\" This is the tricky one!",
+    accept: ["马", "馬", "吗"],
+    path: "M10,35 Q55,75 70,55 T110,20" },
+  { n: 4, mark: "à", name: "Fourth tone — sharp fall",
+    hanzi: "骂", pinyin: "mà", meaning: "to scold",
+    desc: "Drop sharply from high to low, like a firm \"No!\"",
+    accept: ["骂", "罵"],
+    path: "M10,15 L110,70" }
+];
+
+const LESSONS = [
+  {
+    id: "lesson1",
+    title: "Tones & first greetings",
+    desc: "The four tones · hello · thank you · goodbye",
+    phrases: [
+      { hanzi: "你好", pinyin: "nǐ hǎo", english: "Hello",
+        syll: ["你", "好"], psyll: ["nǐ", "hǎo"], ptones: [3, 3], accept: ["你好", "妳好"] },
+      { hanzi: "你好吗？", pinyin: "nǐ hǎo ma?", english: "How are you?",
+        syll: ["你", "好", "吗"], psyll: ["nǐ", "hǎo", "ma"], ptones: [3, 3, 0], accept: ["你好吗", "你好嗎"] },
+      { hanzi: "我很好", pinyin: "wǒ hěn hǎo", english: "I'm very well",
+        syll: ["我", "很", "好"], psyll: ["wǒ", "hěn", "hǎo"], ptones: [3, 3, 3], accept: ["我很好"] },
+      { hanzi: "谢谢", pinyin: "xièxie", english: "Thank you",
+        syll: ["谢", "谢"], psyll: ["xiè", "xie"], ptones: [4, 0], accept: ["谢谢", "謝謝"] },
+      { hanzi: "再见", pinyin: "zàijiàn", english: "Goodbye",
+        syll: ["再", "见"], psyll: ["zài", "jiàn"], ptones: [4, 4], accept: ["再见", "再見"] }
+    ],
+    quiz: [
+      { type: "tone", play: "妈", pinyin: "mā", answer: 1 },
+      { type: "tone", play: "骂", pinyin: "mà", answer: 4 },
+      { type: "tone", play: "麻", pinyin: "má", answer: 2 },
+      { type: "tone", play: "马", pinyin: "mǎ", answer: 3 },
+      { type: "meaning", q: "What does 谢谢 (xièxie) mean?",
+        options: ["Hello", "Thank you", "Goodbye", "How are you?"], answer: 1 },
+      { type: "meaning", q: "How do you say \"Goodbye\"?",
+        options: ["nǐ hǎo", "wǒ hěn hǎo", "zàijiàn", "xièxie"], answer: 2 },
+      { type: "meaning", q: "What does 你好吗 (nǐ hǎo ma) mean?",
+        options: ["I'm very well", "Thank you", "Hello", "How are you?"], answer: 3 },
+      { type: "meaning", q: "Which phrase means \"I'm very well\"?",
+        options: ["wǒ hěn hǎo", "nǐ hǎo", "zàijiàn", "nǐ hǎo ma"], answer: 0 }
+    ]
+  }
+];
+
+/* ============================================================
+   PROGRESS — saved on this device
+   ============================================================ */
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem("mandarin-progress")) || {}; }
+  catch (e) { return {}; }
+}
+function saveProgress(p) {
+  try { localStorage.setItem("mandarin-progress", JSON.stringify(p)); } catch (e) {}
+}
+let progress = loadProgress();
+
+function markDone(lessonId, part) {
+  progress[lessonId] = progress[lessonId] || {};
+  progress[lessonId][part] = true;
+  saveProgress(progress);
+}
+function recordQuiz(lessonId, score, total) {
+  progress[lessonId] = progress[lessonId] || {};
+  const best = progress[lessonId].quizBest || 0;
+  if (score >= best) progress[lessonId].quizBest = score;
+  progress[lessonId].quizTotal = total;
+  progress[lessonId].done = true;
+  // streak
+  const today = new Date().toDateString();
+  const s = progress.streak || { last: null, count: 0 };
+  if (s.last !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    s.count = (s.last === yesterday) ? s.count + 1 : 1;
+    s.last = today;
+  }
+  progress.streak = s;
+  saveProgress(progress);
+}
+
+/* ============================================================
+   SPEECH — text-to-speech with Android quirk fixes
+   ============================================================ */
+
+let zhVoice = null;
+function pickVoice() {
+  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  zhVoice = voices.find(v => /^zh([-_]CN)?/i.test(v.lang) && /CN|Mainland|普通话|Xiaoxiao|Yunxi|Google 普通话|Chinese/i.test(v.name + v.lang))
+        || voices.find(v => /^zh/i.test(v.lang))
+        || null;
+  return voices;
+}
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+let speakTimer = null;
+function speak(text, rate, onend) {
+  if (!window.speechSynthesis) { if (onend) onend(false); return; }
+  speechSynthesis.cancel();
+  clearTimeout(speakTimer);
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-CN";
+  if (zhVoice) u.voice = zhVoice;
+  u.rate = rate || 0.85;
+  u.onend = () => { if (onend) onend(true); };
+  u.onerror = () => { if (onend) onend(false); };
+  // Android quirk: speech can start paused
+  speakTimer = setTimeout(() => {
+    if (speechSynthesis.paused) speechSynthesis.resume();
+  }, 150);
+  speechSynthesis.speak(u);
+}
+
+/* Speak syllable-by-syllable, slowly, with pauses */
+function speakSlow(sylls, i) {
+  i = i || 0;
+  if (i >= sylls.length) return;
+  speak(sylls[i], 0.5, () => {
+    setTimeout(() => speakSlow(sylls, i + 1), 450);
+  });
+}
+
+/* ============================================================
+   SPEECH RECOGNITION — pronunciation checking
+   ============================================================ */
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function listenFor(accept, ui) {
+  // ui: {onstart, onhear, onresult(ok, heard), onerror(msg)}
+  if (!SR) {
+    ui.onerror("This browser can't do speech recognition. On your phone, use Chrome — it has it built in.");
+    return;
+  }
+  const rec = new SR();
+  rec.lang = "zh-CN";
+  rec.interimResults = true;   // keep partial guesses — vital for short syllables
+  rec.maxAlternatives = 5;
+  let resolved = false, audioStarted = false, speechHeard = false;
+  const heard = [];
+  const clean = s => s.replace(/[，。？！?,.!\s]/g, "");
+  const matches = t => {
+    const c = clean(t);
+    return c.length > 0 && accept.some(x => c === x || c.includes(x) || x.includes(c));
+  };
+  const display = () => {
+    const m = heard.filter(matches);
+    if (m.length) return m[m.length - 1];
+    return heard.reduce((a, b) => (clean(b).length >= clean(a).length ? b : a), heard[0]);
+  };
+  const settle = () => {
+    if (resolved) return;
+    resolved = true;
+    ui.onresult(heard.some(matches), display());
+  };
+  rec.onstart = ui.onstart;
+  rec.onaudiostart = () => { audioStarted = true; };
+  rec.onspeechstart = () => { speechHeard = true; if (ui.onhear) ui.onhear(); };
+  rec.onresult = (e) => {
+    let anyFinal = false;
+    for (let i = 0; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) anyFinal = true;
+      for (let j = 0; j < r.length; j++) {
+        if (r[j].transcript && r[j].transcript.trim()) heard.push(r[j].transcript);
+      }
+    }
+    if (anyFinal && heard.length) settle();
+  };
+  rec.onerror = (e) => {
+    if (resolved) return;
+    if (heard.length) { settle(); return; }
+    resolved = true;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      ui.onerror("The microphone was blocked. Tap the padlock next to the web address, set Microphone to Allow, then reload the page.");
+    } else if (e.error === "no-speech") {
+      ui.onerror("I didn't hear anything — tap the button and speak straight away, nice and clearly.");
+    } else {
+      ui.onerror("The microphone didn't start (" + e.error + "). Try again in a moment.");
+    }
+  };
+  rec.onend = () => {
+    if (resolved) return;
+    if (heard.length) { settle(); return; }
+    resolved = true;
+    if (!audioStarted) {
+      ui.onerror("The microphone never opened — reload the page and check the mic permission (padlock next to the address).");
+    } else if (!speechHeard) {
+      ui.onerror("The mic was on, but no speech reached it. The wrong microphone may be selected — run the 🎙️ Microphone check from the menu to see if your voice registers.");
+    } else {
+      ui.onerror("I heard your voice but couldn't make out any words — try repeating it a few times in one breath, e.g. \"mā mā mā\".");
+    }
+  };
+  try { rec.start(); } catch (err) {
+    ui.onerror("Couldn't start listening — try again in a second.");
+  }
+  return rec;
+}
+
+/* ============================================================
+   TINY VIEW HELPERS
+   ============================================================ */
+
+const app = document.getElementById("app");
+function h(html) { app.innerHTML = html; window.scrollTo(0, 0); }
+function el(id) { return document.getElementById(id); }
+function on(id, fn) { const e = el(id); if (e) e.onclick = fn; }
+
+function topbar(crumb, backFn) {
+  return `<div class="topbar">
+    <button class="home-btn" id="nav-home" title="Home">🏠</button>
+    <span class="crumb">${crumb || ""}</span>
+  </div>`;
+}
+function wireTopbar() { on("nav-home", showHome); }
+
+function bar(cur, total) {
+  return `<div class="progressbar"><div style="width:${Math.round(cur / total * 100)}%"></div></div>`;
+}
+
+function micButton(accept, extraOnGood) {
+  // returns html; call wireMic after render
+  return `
+    <button class="big amber" id="mic-btn">🎤 Check my pronunciation</button>
+    <div class="feedback" id="mic-fb"></div>`;
+}
+function wireMic(accept, pinyin) {
+  const btn = el("mic-btn"), fb = el("mic-fb");
+  if (!btn) return;
+  btn.onclick = () => {
+    fb.className = "feedback show info";
+    fb.textContent = "Getting the microphone ready…";
+    btn.disabled = true;
+    listenFor(accept, {
+      onstart: () => {
+        fb.className = "feedback show info";
+        fb.textContent = "🔴 Listening — say it now!";
+      },
+      onhear: () => {
+        fb.className = "feedback show info";
+        fb.textContent = "🔴 I can hear you…";
+      },
+      onresult: (ok, heard) => {
+        btn.disabled = false;
+        if (ok) {
+          fb.className = "feedback show good";
+          fb.textContent = "✅ Understood you perfectly! It heard: " + heard;
+        } else {
+          fb.className = "feedback show bad";
+          fb.textContent = "🤔 It heard \"" + heard + "\" — not quite \"" + pinyin + "\". Listen once more, then have another go. Tones take practice!";
+        }
+      },
+      onerror: (msg) => {
+        btn.disabled = false;
+        fb.className = "feedback show bad";
+        fb.textContent = msg;
+      }
+    });
+  };
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+
+function showHome() {
+  const s = progress.streak;
+  const streakLine = s && s.count > 0
+    ? `🔥 ${s.count}-day streak — keep it going!`
+    : "Practise a little every day — 15 minutes is plenty.";
+  const l1 = progress.lesson1 || {};
+  h(`
+    <div class="topbar"><span></span><span class="crumb">学中文</span></div>
+    <h1>Mandarin with Claude</h1>
+    <p class="subtitle">Your daily practice, one tap away</p>
+    <p class="streak">${streakLine}</p>
+    <div class="lesson-item" id="go-lesson1">
+      <div class="num">1</div>
+      <div class="info">
+        <div class="t">Tones &amp; first greetings</div>
+        <div class="d">The four tones · hello · thank you · goodbye</div>
+      </div>
+      <div class="done-tick">${l1.done ? "✅" : "▶️"}</div>
+    </div>
+    <div class="lesson-item locked">
+      <div class="num" style="background:#c9bba6">2</div>
+      <div class="info">
+        <div class="t">Numbers &amp; introducing yourself</div>
+        <div class="d">Coming soon — finish Lesson 1 first!</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="big grey" id="go-sound">🔊 Sound check</button>
+      <button class="big grey" id="go-mic">🎙️ Microphone check</button>
+    </div>
+    ${l1.quizBest !== undefined ? `<p class="center" style="color:#8a7a68;font-size:15px">Best quiz score: ${l1.quizBest}/${l1.quizTotal}</p>` : ""}
+    <div class="tip">💡 <b>Tip:</b> in Chrome tap ⋮ → <b>Add to Home screen</b> so this opens like an app. This link never changes — new lessons appear here automatically.</div>
+  `);
+  on("go-lesson1", () => showSoundOrLesson());
+  on("go-sound", showSoundCheck);
+  on("go-mic", showMicCheck);
+}
+
+/* ---------- Microphone check with live volume meter ---------- */
+
+let micStream = null, micRaf = null;
+function stopMicTest() {
+  if (micRaf) cancelAnimationFrame(micRaf);
+  micRaf = null;
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+}
+
+function showMicCheck() {
+  h(`
+    ${topbar("Microphone check")}
+    <h2>Microphone check</h2>
+    <p class="subtitle">Tap start, then talk — the green bar should jump as you speak.</p>
+    <div class="card">
+      <button class="big amber" id="mic-start">🎙️ Start microphone test</button>
+      <div id="meter-wrap" style="display:none">
+        <div style="height:28px;background:#eee3d4;border-radius:14px;overflow:hidden;margin:16px 0 10px">
+          <div id="meter" style="height:100%;width:0%;background:#2e7d32"></div>
+        </div>
+        <p class="diag" id="mic-device"></p>
+        <p id="mic-verdict" style="font-weight:600;margin-top:8px">Say something…</p>
+      </div>
+      <div class="feedback" id="mc-fb"></div>
+    </div>
+    <div class="tip">If the bar stays flat while you talk, Windows is listening to the wrong device: Windows Settings → System → Sound → <b>Input</b>, pick your real microphone, then test again.</div>
+    <button class="big grey" id="back">← Back to menu</button>
+  `);
+  wireTopbar();
+  on("nav-home", () => { stopMicTest(); showHome(); });
+  on("back", () => { stopMicTest(); showHome(); });
+  on("mic-start", () => {
+    const fb = el("mc-fb");
+    stopMicTest();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      fb.className = "feedback show bad";
+      fb.textContent = "This browser can't open the microphone this way.";
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      micStream = stream;
+      el("meter-wrap").style.display = "block";
+      fb.className = "feedback"; fb.textContent = "";
+      const track = stream.getAudioTracks()[0];
+      el("mic-device").textContent = "Listening on: " + (track && track.label ? track.label : "(unnamed microphone)");
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      src.connect(analyser);
+      const data = new Uint8Array(analyser.fftSize);
+      let best = 0;
+      const loop = () => {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) { const d = (data[i] - 128) / 128; sum += d * d; }
+        const level = Math.min(1, Math.sqrt(sum / data.length) * 4);
+        el("meter").style.width = Math.round(level * 100) + "%";
+        if (level > best) best = level;
+        el("mic-verdict").textContent =
+          best > 0.25 ? "✅ Loud and clear — your microphone works! The 🎤 checks should work now."
+          : best > 0.08 ? "🟡 I can hear you faintly — get closer or speak up a little."
+          : "Say something…";
+        micRaf = requestAnimationFrame(loop);
+      };
+      loop();
+    }).catch((err) => {
+      fb.className = "feedback show bad";
+      fb.textContent = (err && err.name === "NotFoundError")
+        ? "No microphone was found on this computer — is one plugged in?"
+        : (err && err.name === "NotAllowedError")
+        ? "The microphone was blocked — tap the padlock next to the address, allow the microphone, and reload."
+        : "Couldn't open the microphone (" + (err && err.name) + ").";
+    });
+  });
+}
+
+function showSoundOrLesson() {
+  if (progress.soundOk) showToneIntro();
+  else showSoundCheck();
+}
+
+function showSoundCheck() {
+  h(`
+    ${topbar("Sound check")}
+    <h2>First, a quick sound check</h2>
+    <p class="subtitle">Turn your volume up, then tap the button.</p>
+    <div class="card center">
+      <button class="big" id="test-sound">🔊 Play test sound — "nǐ hǎo"</button>
+      <div class="diag" id="diag"></div>
+    </div>
+    <div id="confirm" style="display:none">
+      <p class="center" style="margin:14px 0"><b>Did you hear a voice say "nǐ hǎo"?</b></p>
+      <div class="btn-row">
+        <button class="big green" id="heard-yes">✅ Yes, heard it</button>
+        <button class="big grey" id="heard-no">❌ No sound</button>
+      </div>
+    </div>
+    <button class="big grey" id="back-home">← Back</button>
+  `);
+  wireTopbar();
+  on("back-home", showHome);
+  on("test-sound", () => {
+    const d = el("diag");
+    const voices = pickVoice();
+    let lines = `Voices on this device: ${voices.length}\nChinese voice: ${zhVoice ? "✅ " + zhVoice.name : "❌ none found"}`;
+    d.textContent = lines + "\nSpeaking…";
+    const t0 = Date.now();
+    speak("你好", 0.85, (ok) => {
+      const secs = ((Date.now() - t0) / 1000).toFixed(1);
+      d.textContent = lines + (ok ? `\n✅ Audio played for ${secs}s` : "\n❌ Audio failed to play");
+      el("confirm").style.display = "block";
+    });
+    setTimeout(() => { el("confirm").style.display = "block"; }, 4000);
+  });
+  on("heard-yes", () => {
+    progress.soundOk = true; saveProgress(progress);
+    showToneIntro();
+  });
+  on("heard-no", () => {
+    const d = el("diag");
+    d.textContent += "\n\nNo sound usually means: silent/vibrate mode is on, media volume is right down, or your phone has no Chinese voice installed (Settings → Text-to-speech → download Chinese). Fix and try again.";
+  });
+}
+
+/* ---------- Part 1: Tones ---------- */
+
+function showToneIntro() {
+  h(`
+    ${topbar("Lesson 1 · Part 1 of 4")}
+    ${bar(1, 4)}
+    <h2>Part 1 — The Four Tones</h2>
+    <p class="subtitle">Mandarin uses pitch to change meaning. The same sound "ma" means four different things depending on the tone — that's why we start here.</p>
+    <div class="card">
+      <p>You'll hear each tone, see its pitch shape, practise saying it, and the app will check whether a machine understands your Mandarin. 🐢 buttons speak extra slowly.</p>
+    </div>
+    <button class="big green" id="start">Start the tones →</button>
+    <button class="big grey" id="back">← Back to menu</button>
+  `);
+  wireTopbar();
+  on("start", () => showTone(0));
+  on("back", showHome);
+}
+
+function showTone(i) {
+  const t = TONES[i];
+  h(`
+    ${topbar(`Lesson 1 · Part 1 · Tone ${t.n} / 4`)}
+    ${bar(1, 4)}
+    <h2>Tone ${t.n} of 4</h2>
+    <p class="subtitle">${t.name}</p>
+    <div class="card center">
+      <svg class="tone-svg" width="120" height="85" viewBox="0 0 120 85">
+        <line x1="10" y1="10" x2="10" y2="75" stroke="#d8cbb8" stroke-width="2"/>
+        <line x1="10" y1="75" x2="110" y2="75" stroke="#d8cbb8" stroke-width="2"/>
+        <path d="${t.path}" stroke="#b3282d" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="hanzi hanzi-small">${t.hanzi}</div>
+      <div class="pinyin">${t.pinyin}</div>
+      <div class="english">"${t.meaning}"</div>
+      <p style="font-size:16px;color:#6b5d4e">${t.desc}</p>
+    </div>
+    <div class="btn-row">
+      <button class="big blue" id="listen">🔊 Listen</button>
+      <button class="big blue" id="slow">🐢 Slowly</button>
+    </div>
+    ${micButton()}
+    <p class="center" style="font-size:15px;color:#8a7a68;margin-top:2px">Tip: repeat it a few times in one breath — "${t.pinyin} ${t.pinyin} ${t.pinyin}" — single sounds are hard for the checker to catch.</p>
+    <div class="btn-row">
+      <button class="big grey" id="back">← Back</button>
+      <button class="big green" id="next">${i < 3 ? "Next tone →" : "On to phrases →"}</button>
+    </div>
+  `);
+  wireTopbar();
+  on("listen", () => speak(t.hanzi, 0.8));
+  on("slow", () => speak(t.hanzi, 0.4));
+  wireMic(t.accept, t.pinyin);
+  on("back", () => i === 0 ? showToneIntro() : showTone(i - 1));
+  on("next", () => {
+    if (i < 3) showTone(i + 1);
+    else { markDone("lesson1", "tones"); showPhrase(0); }
+  });
+}
+
+/* ---------- Tone chips: mini pitch curve per syllable ---------- */
+
+const TONE_PATHS = {
+  1: "M10,30 L110,30",
+  2: "M10,55 L110,15",
+  3: "M10,35 Q55,75 70,55 T110,20",
+  4: "M10,15 L110,70"
+};
+const TONE_LABELS = { 0: "neutral", 1: "1st tone", 2: "2nd tone", 3: "3rd tone", 4: "4th tone" };
+
+function toneChip(pinyinSyll, tone) {
+  const curve = tone === 0
+    ? `<circle cx="60" cy="55" r="9" fill="#b3282d"/>`
+    : `<path d="${TONE_PATHS[tone]}" stroke="#b3282d" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+  return `<div class="chip">
+    <svg width="52" height="37" viewBox="0 0 120 85">${curve}</svg>
+    <div class="chip-p">${pinyinSyll}</div>
+    <div class="chip-t">${TONE_LABELS[tone]}</div>
+  </div>`;
+}
+
+function toneChips(p) {
+  if (!p.ptones) return "";
+  const chips = p.psyll.map((s, i) => toneChip(s, p.ptones[i])).join("");
+  const hasDouble3 = p.ptones.some((t, i) => t === 3 && p.ptones[i + 1] === 3);
+  const note = hasDouble3
+    ? `<div class="sandhi">✨ Quirk: when two 3rd tones meet, the first one is spoken as a <b>rising 2nd tone</b> — so this sounds like "${p.psyll.map((s, i) => (p.ptones[i] === 3 && p.ptones[i + 1] === 3) ? s.replace("ǐ","í").replace("ǎ","á").replace("ǒ","ó").replace("ě","é") : s).join(" ")}". Listen for it!</div>`
+    : "";
+  return `<div class="tone-chips">${chips}</div>${note}`;
+}
+
+/* ---------- Part 2: Phrases ---------- */
+
+function showPhrase(i) {
+  const p = LESSONS[0].phrases[i];
+  const n = LESSONS[0].phrases.length;
+  h(`
+    ${topbar(`Lesson 1 · Part 2 · Phrase ${i + 1} / ${n}`)}
+    ${bar(2, 4)}
+    <h2>Part 2 — Listen &amp; repeat</h2>
+    <div class="card center">
+      <div class="hanzi">${p.hanzi}</div>
+      <div class="pinyin">${p.pinyin}</div>
+      <div class="english">${p.english}</div>
+      ${toneChips(p)}
+    </div>
+    <div class="btn-row">
+      <button class="big blue" id="listen">🔊 Listen</button>
+      <button class="big blue" id="slow">🐢 Syllable by syllable</button>
+    </div>
+    ${micButton()}
+    <div class="btn-row">
+      <button class="big grey" id="back">← Back</button>
+      <button class="big green" id="next">${i < n - 1 ? "Next phrase →" : "On to speaking →"}</button>
+    </div>
+  `);
+  wireTopbar();
+  on("listen", () => speak(p.hanzi, 0.8));
+  on("slow", () => speakSlow(p.syll));
+  wireMic(p.accept, p.pinyin);
+  on("back", () => i === 0 ? showTone(3) : showPhrase(i - 1));
+  on("next", () => {
+    if (i < n - 1) showPhrase(i + 1);
+    else { markDone("lesson1", "phrases"); showSpeakIntro(); }
+  });
+}
+
+/* ---------- Part 3: Speaking from memory ---------- */
+
+function showSpeakIntro() {
+  h(`
+    ${topbar("Lesson 1 · Part 3 of 4")}
+    ${bar(3, 4)}
+    <h2>Part 3 — Say it from memory</h2>
+    <p class="subtitle">Now the challenge: you'll see only the English and the pinyin. Say the phrase out loud and let the app check you. Peek with 🔊 if you're stuck — that's allowed!</p>
+    <button class="big green" id="start">Start speaking practice →</button>
+    <button class="big grey" id="back">← Back</button>
+  `);
+  wireTopbar();
+  on("start", () => showSpeak(0));
+  on("back", () => showPhrase(LESSONS[0].phrases.length - 1));
+}
+
+function showSpeak(i) {
+  const p = LESSONS[0].phrases[i];
+  const n = LESSONS[0].phrases.length;
+  h(`
+    ${topbar(`Lesson 1 · Part 3 · ${i + 1} / ${n}`)}
+    ${bar(3, 4)}
+    <h2>Say this in Mandarin:</h2>
+    <div class="card center">
+      <div class="english" style="font-size:24px;color:#2b2118;font-weight:600">${p.english}</div>
+      <div class="pinyin">${p.pinyin}</div>
+    </div>
+    ${micButton()}
+    <button class="big outline" id="peek">🔊 Remind me how it sounds</button>
+    <div class="btn-row">
+      <button class="big grey" id="back">← Back</button>
+      <button class="big green" id="next">${i < n - 1 ? "Next →" : "On to the quiz →"}</button>
+    </div>
+  `);
+  wireTopbar();
+  wireMic(p.accept, p.pinyin);
+  on("peek", () => speak(p.hanzi, 0.8));
+  on("back", () => i === 0 ? showSpeakIntro() : showSpeak(i - 1));
+  on("next", () => {
+    if (i < n - 1) showSpeak(i + 1);
+    else { markDone("lesson1", "speaking"); showQuizIntro(); }
+  });
+}
+
+/* ---------- Part 4: Quiz ---------- */
+
+let quizScore = 0;
+
+function showQuizIntro() {
+  h(`
+    ${topbar("Lesson 1 · Part 4 of 4")}
+    ${bar(4, 4)}
+    <h2>Part 4 — Quick quiz</h2>
+    <p class="subtitle">8 questions: four listening (which tone did you hear?) and four meanings. Sound on!</p>
+    <button class="big green" id="start">Start the quiz →</button>
+    <button class="big grey" id="back">← Back</button>
+  `);
+  wireTopbar();
+  on("start", () => { quizScore = 0; showQuiz(0); });
+  on("back", () => showSpeak(LESSONS[0].phrases.length - 1));
+}
+
+function showQuiz(i) {
+  const quiz = LESSONS[0].quiz;
+  const q = quiz[i];
+  const n = quiz.length;
+  if (q.type === "tone") {
+    h(`
+      ${topbar(`Quiz · ${i + 1} / ${n}`)}
+      ${bar(4, 4)}
+      <h2>Question ${i + 1}</h2>
+      <p class="subtitle">Listen, then choose: which tone did you hear?</p>
+      <button class="big blue" id="play">🔊 Play the sound</button>
+      <div id="opts">
+        ${[1,2,3,4].map(t => `<button class="quiz-option" data-t="${t}">Tone ${t} — ${["high and flat","rising","dip then rise","sharp fall"][t-1]}</button>`).join("")}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="big green" id="next" disabled>${i < n - 1 ? "Next question →" : "See my score →"}</button>
+    `);
+    wireTopbar();
+    on("play", () => speak(q.play, 0.7));
+    document.querySelectorAll(".quiz-option").forEach(btn => {
+      btn.onclick = () => {
+        if (el("next").disabled === false) return;
+        const chosen = Number(btn.dataset.t);
+        const fb = el("fb");
+        if (chosen === q.answer) {
+          quizScore++;
+          btn.classList.add("correct");
+          fb.className = "feedback show good";
+          fb.textContent = `✅ Right! That was ${q.pinyin} — tone ${q.answer}.`;
+        } else {
+          btn.classList.add("wrong");
+          document.querySelector(`.quiz-option[data-t="${q.answer}"]`).classList.add("correct");
+          fb.className = "feedback show bad";
+          fb.textContent = `That was ${q.pinyin} — tone ${q.answer}. Tap 🔊 to hear it again before moving on.`;
+        }
+        el("next").disabled = false;
+      };
+    });
+  } else {
+    h(`
+      ${topbar(`Quiz · ${i + 1} / ${n}`)}
+      ${bar(4, 4)}
+      <h2>Question ${i + 1}</h2>
+      <p class="subtitle">${q.q}</p>
+      <div id="opts">
+        ${q.options.map((o, idx) => `<button class="quiz-option" data-i="${idx}">${o}</button>`).join("")}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="big green" id="next" disabled>${i < n - 1 ? "Next question →" : "See my score →"}</button>
+    `);
+    wireTopbar();
+    document.querySelectorAll(".quiz-option").forEach(btn => {
+      btn.onclick = () => {
+        if (el("next").disabled === false) return;
+        const chosen = Number(btn.dataset.i);
+        const fb = el("fb");
+        if (chosen === q.answer) {
+          quizScore++;
+          btn.classList.add("correct");
+          fb.className = "feedback show good";
+          fb.textContent = "✅ Correct!";
+        } else {
+          btn.classList.add("wrong");
+          document.querySelector(`.quiz-option[data-i="${q.answer}"]`).classList.add("correct");
+          fb.className = "feedback show bad";
+          fb.textContent = `The answer is: ${q.options[q.answer]}`;
+        }
+        el("next").disabled = false;
+      };
+    });
+  }
+  on("next", () => {
+    if (i < n - 1) showQuiz(i + 1);
+    else showResults();
+  });
+}
+
+function showResults() {
+  const total = LESSONS[0].quiz.length;
+  recordQuiz("lesson1", quizScore, total);
+  const pct = quizScore / total;
+  const msg = pct === 1 ? "Perfect score — 太好了 (tài hǎo le)! Brilliant!"
+    : pct >= 0.75 ? "Great work — you've really got this!"
+    : pct >= 0.5 ? "Good effort — worth one more run through the tones tomorrow."
+    : "Tones are hard at first — everyone finds this bit tough. Run Part 1 again tomorrow and it will click.";
+  const s = progress.streak;
+  h(`
+    ${topbar("Lesson 1 complete")}
+    <div class="big-emoji">${pct >= 0.75 ? "🏮" : "💪"}</div>
+    <h2 class="center">You scored ${quizScore} / ${total}</h2>
+    <p class="subtitle center">${msg}</p>
+    ${s && s.count > 1 ? `<p class="streak">🔥 ${s.count}-day streak!</p>` : ""}
+    <div class="card">
+      <p><b>Today you learned:</b></p>
+      <p style="margin-top:8px">The four tones · 你好 hello · 你好吗 how are you · 我很好 I'm well · 谢谢 thank you · 再见 goodbye</p>
+    </div>
+    <button class="big green" id="again">Practise again</button>
+    <button class="big grey" id="home">← Back to menu</button>
+    <p class="center" style="color:#8a7a68;font-size:15px;margin-top:14px">再见 — see you tomorrow! 👋</p>
+  `);
+  wireTopbar();
+  on("again", showToneIntro);
+  on("home", showHome);
+}
+
+/* ============================================================ */
+showHome();
+
+/* Offline support — lets the app install and open without internet */
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
