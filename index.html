@@ -246,29 +246,31 @@ const LESSON1_PHRASES = [
     accept: ["再见", "再見"], speak: true }
 ];
 
+/* accept lists include digits and common same-sounding characters —
+   recognisers rarely choose the number character for one lone syllable */
 const LESSON2_NUMBERS = [
   { hanzi: "零", pinyin: "líng", english: "zero — 0", phon: "ling",
-    syll: ["零"], psyll: ["líng"], ptones: [2], accept: ["零", "0"] },
+    syll: ["零"], psyll: ["líng"], ptones: [2], accept: ["零", "0", "玲", "铃", "灵"] },
   { hanzi: "一", pinyin: "yī", english: "one — 1", phon: "ee",
-    syll: ["一"], psyll: ["yī"], ptones: [1], accept: ["一", "1"] },
+    syll: ["一"], psyll: ["yī"], ptones: [1], accept: ["一", "1", "医", "衣", "依"] },
   { hanzi: "二", pinyin: "èr", english: "two — 2", phon: "ar",
-    syll: ["二"], psyll: ["èr"], ptones: [4], accept: ["二", "2"] },
+    syll: ["二"], psyll: ["èr"], ptones: [4], accept: ["二", "2", "尔", "耳"] },
   { hanzi: "三", pinyin: "sān", english: "three — 3", phon: "sahn",
-    syll: ["三"], psyll: ["sān"], ptones: [1], accept: ["三", "3"] },
+    syll: ["三"], psyll: ["sān"], ptones: [1], accept: ["三", "3", "散", "伞"] },
   { hanzi: "四", pinyin: "sì", english: "four — 4", phon: "suh",
-    syll: ["四"], psyll: ["sì"], ptones: [4], accept: ["四", "4"] },
+    syll: ["四"], psyll: ["sì"], ptones: [4], accept: ["四", "4", "似", "寺", "死"] },
   { hanzi: "五", pinyin: "wǔ", english: "five — 5", phon: "woo",
-    syll: ["五"], psyll: ["wǔ"], ptones: [3], accept: ["五", "5"] },
+    syll: ["五"], psyll: ["wǔ"], ptones: [3], accept: ["五", "5", "武", "舞", "午", "无", "吴"] },
   { hanzi: "六", pinyin: "liù", english: "six — 6", phon: "lyoh",
-    syll: ["六"], psyll: ["liù"], ptones: [4], accept: ["六", "6"] },
+    syll: ["六"], psyll: ["liù"], ptones: [4], accept: ["六", "6", "留", "刘", "流"] },
   { hanzi: "七", pinyin: "qī", english: "seven — 7", phon: "chee",
-    syll: ["七"], psyll: ["qī"], ptones: [1], accept: ["七", "7"] },
+    syll: ["七"], psyll: ["qī"], ptones: [1], accept: ["七", "7", "期", "妻", "起", "气"] },
   { hanzi: "八", pinyin: "bā", english: "eight — 8", phon: "bah",
-    syll: ["八"], psyll: ["bā"], ptones: [1], accept: ["八", "8"] },
+    syll: ["八"], psyll: ["bā"], ptones: [1], accept: ["八", "8", "吧", "爸", "拔", "巴"] },
   { hanzi: "九", pinyin: "jiǔ", english: "nine — 9", phon: "jyoh",
-    syll: ["九"], psyll: ["jiǔ"], ptones: [3], accept: ["九", "9"] },
+    syll: ["九"], psyll: ["jiǔ"], ptones: [3], accept: ["九", "9", "酒", "久", "就", "旧"] },
   { hanzi: "十", pinyin: "shí", english: "ten — 10", phon: "shr",
-    syll: ["十"], psyll: ["shí"], ptones: [2], accept: ["十", "10"] }
+    syll: ["十"], psyll: ["shí"], ptones: [2], accept: ["十", "10", "时", "石", "食", "识", "是"] }
 ];
 
 const LESSON2_PHRASES = [
@@ -753,6 +755,31 @@ function listenFor(accept, ui) {
   rec.interimResults = true;
   rec.maxAlternatives = 5;
   let resolved = false, audioStarted = false, speechHeard = false;
+  // record the learner's actual voice alongside recognition, so
+  // feedback can play back what they really said
+  let recorder = null, recChunks = [], recStream = null, recUrl = null;
+  const stopRec = (cb) => {
+    if (!recorder || recorder.state === "inactive") {
+      if (recStream) recStream.getTracks().forEach(t => t.stop());
+      cb(); return;
+    }
+    recorder.onstop = () => {
+      try {
+        const blob = new Blob(recChunks, { type: recorder.mimeType || "audio/webm" });
+        if (blob.size > 200) {
+          if (window._lastRecUrl) { try { URL.revokeObjectURL(window._lastRecUrl); } catch (e) {} }
+          recUrl = URL.createObjectURL(blob);
+          window._lastRecUrl = recUrl;
+        }
+      } catch (e) {}
+      recStream.getTracks().forEach(t => t.stop());
+      cb();
+    };
+    try { recorder.stop(); } catch (e) {
+      recStream.getTracks().forEach(t => t.stop());
+      cb();
+    }
+  };
   const heard = [];
   const clean = s => s.replace(/[，。？！?,.!\s]/g, "");
   const matches = t => {
@@ -769,7 +796,12 @@ function listenFor(accept, ui) {
   const settle = () => {
     if (resolved) return;
     resolved = true;
-    ui.onresult(heard.some(matches), display());
+    stopRec(() => ui.onresult(heard.some(matches), display(), recUrl));
+  };
+  const fail = (msg) => {
+    if (resolved) return;
+    resolved = true;
+    stopRec(() => ui.onerror(msg));
   };
   rec.onstart = ui.onstart;
   rec.onaudiostart = () => { audioStarted = true; };
@@ -788,29 +820,46 @@ function listenFor(accept, ui) {
   rec.onerror = (e) => {
     if (resolved) return;
     if (heard.length) { settle(); return; }
-    resolved = true;
     if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-      ui.onerror("The microphone was blocked. Tap the padlock next to the web address, set Microphone to Allow, then reload the page.");
+      fail("The microphone was blocked. Tap the padlock next to the web address, set Microphone to Allow, then reload the page.");
     } else if (e.error === "no-speech") {
-      ui.onerror("I didn't hear anything — tap the button and speak straight away, nice and clearly.");
+      fail("I didn't hear anything — tap the button and speak straight away, nice and clearly.");
     } else {
-      ui.onerror("The microphone didn't start (" + e.error + "). Try again in a moment.");
+      fail("The microphone didn't start (" + e.error + "). Try again in a moment.");
     }
   };
   rec.onend = () => {
     if (resolved) return;
     if (heard.length) { settle(); return; }
-    resolved = true;
     if (!audioStarted) {
-      ui.onerror("The microphone never opened — reload the page and check the mic permission (padlock next to the address).");
+      fail("The microphone never opened — reload the page and check the mic permission (padlock next to the address).");
     } else if (!speechHeard) {
-      ui.onerror("The mic was on, but no speech reached it. The wrong microphone may be selected — run the 🎙️ Microphone check from the menu.");
+      fail("The mic was on, but no speech reached it. The wrong microphone may be selected — run the 🎙️ Microphone check from the menu.");
     } else {
-      ui.onerror("I heard your voice but couldn't make out the words — get a little closer and have another go!");
+      fail("I heard your voice but couldn't make out the words — say it a few times in one breath and have another go!");
     }
   };
-  try { rec.start(); } catch (err) {
-    ui.onerror("Couldn't start listening — try again in a second.");
+  const begin = () => {
+    try { rec.start(); } catch (err) {
+      fail("Couldn't start listening — try again in a second.");
+    }
+  };
+  // best-effort recorder; recognition proceeds either way
+  if (window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((s) => {
+      recStream = s;
+      try {
+        recorder = new MediaRecorder(s);
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
+        recorder.start();
+      } catch (e) {
+        s.getTracks().forEach(t => t.stop());
+        recStream = null; recorder = null;
+      }
+      begin();
+    }).catch(begin);
+  } else {
+    begin();
   }
   return rec;
 }
@@ -863,18 +912,42 @@ function runToneMeter(targetTone, ui) {
     const track = [];
     let started = 0, last = 0, raf = null, finished = false;
     const t0 = performance.now();
+    // record the attempt so the learner can play their own voice back
+    let recorder = null, recChunks = [], recUrl = null;
+    try {
+      if (window.MediaRecorder) {
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
+        recorder.start();
+      }
+    } catch (e) { recorder = null; }
+    const stopRec = (cb) => {
+      if (!recorder || recorder.state === "inactive") { cb(); return; }
+      recorder.onstop = () => {
+        try {
+          const blob = new Blob(recChunks, { type: recorder.mimeType || "audio/webm" });
+          if (blob.size > 200) {
+            if (window._lastToneRecUrl) { try { URL.revokeObjectURL(window._lastToneRecUrl); } catch (e) {} }
+            recUrl = URL.createObjectURL(blob);
+            window._lastToneRecUrl = recUrl;
+          }
+        } catch (e) {}
+        cb();
+      };
+      try { recorder.stop(); } catch (e) { cb(); }
+    };
     const cleanup = () => {
       if (raf) cancelAnimationFrame(raf);
       stream.getTracks().forEach(t => t.stop());
       if (ctx.state !== "closed") ctx.close();
     };
-    meterCleanup = () => { finished = true; cleanup(); };
+    meterCleanup = () => { finished = true; try { if (recorder && recorder.state !== "inactive") recorder.stop(); } catch (e) {} cleanup(); };
     ui.onlisten();
     const finish = () => {
       if (finished) return;
       finished = true;
-      cleanup();
-      analyse();
+      if (raf) cancelAnimationFrame(raf);
+      stopRec(() => { cleanup(); analyse(); });
     };
     const step = () => {
       if (finished) return;
@@ -934,7 +1007,7 @@ function runToneMeter(targetTone, ui) {
         const y = 75 - ((v - lo) / (hi - lo)) * 60;
         return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
       });
-      ui.onresult(detected, pts);
+      ui.onresult(detected, pts, recUrl);
     }
   }).catch((err) => {
     ui.onerror((err && err.name === "NotAllowedError")
@@ -994,25 +1067,29 @@ function wireMic(p) {
         fb.className = "feedback show info";
         fb.textContent = "🔴 I can hear you…";
       },
-      onresult: (ok, heard) => {
+      onresult: (ok, heard, recUrl) => {
         btn.disabled = false;
         const heardPy = pinyinFor(heard);
+        const mineBtn = recUrl
+          ? `<button id="fb-mine">🎧 My voice (real recording)</button>`
+          : `<button id="fb-heard">🔊 What it heard</button>`;
+        const row = `<div class="fb-row">${mineBtn}<button id="fb-target">🔊 The target</button></div>`;
         if (ok) {
           fb.className = "feedback show good";
-          fb.innerHTML = `✅ Understood you perfectly!<br><b>It heard:</b> ${heard} (${heardPy})`;
+          fb.innerHTML = `✅ Understood you perfectly!<br><b>It heard:</b> ${heard} (${heardPy})
+            ${row}
+            Play both back-to-back — hearing yourself next to the target is the fastest way to polish the tones.`;
         } else {
           fb.className = "feedback show bad";
           fb.innerHTML = `🤔 Not quite — but here's exactly what happened:<br>
             <b>It heard you say:</b> ${heard} (${heardPy})<br>
             <b>You're aiming for:</b> ${p.hanzi.replace(/[？?]/g, "")} — ${p.pinyin} · sounds like "${p.phon}"
-            <div class="fb-row">
-              <button id="fb-heard">🔊 What it heard</button>
-              <button id="fb-target">🔊 What to aim for</button>
-            </div>
+            ${row}
             Play both and listen for the difference, then have another go.`;
-          on("fb-heard", () => speak(heard, 0.8));
-          on("fb-target", () => speak(p.hanzi, 0.8));
         }
+        on("fb-mine", () => { try { new Audio(recUrl).play(); } catch (e) {} });
+        on("fb-heard", () => speak(heard, 0.8));
+        on("fb-target", () => speak(p.hanzi, 0.8));
       },
       onerror: (msg) => {
         btn.disabled = false;
@@ -1294,6 +1371,7 @@ function showCard(li, si, ii) {
       <button class="big teal" id="slow">🐢 ${p.syll.length > 1 ? "Syllable by syllable" : "Slowly"}</button>
     </div>
     ${micButton()}
+    ${p.syll.length === 1 ? `<p class="center" style="font-size:15px;color:#a08872;margin-top:2px">Tip: single sounds are tricky for the checker — say it a few times in one breath: "${p.pinyin} ${p.pinyin} ${p.pinyin}".</p>` : ""}
     <div class="btn-row">
       <button class="big grey" id="back">← Back</button>
       <button class="big green" id="next">Next →</button>
@@ -1402,6 +1480,7 @@ function showTone(li, i) {
     <div class="meter-box card" id="tone-res">
       <svg width="200" height="142" viewBox="0 0 120 85" id="tone-res-svg"></svg>
       <div class="legend">Dashed = target · Solid = your voice</div>
+      <div id="tone-mine-slot"></div>
     </div>
     <div class="btn-row">
       <button class="big grey" id="back">← Back</button>
@@ -1432,7 +1511,7 @@ function wireToneMeter(t) {
         fb.className = "feedback show info";
         fb.textContent = `🔴 Listening — say "${t.phon}" now, one steady go…`;
       },
-      onresult: (detected, pts) => {
+      onresult: (detected, pts, recUrl) => {
         btn.disabled = false;
         const svg = el("tone-res-svg");
         const userPath = "M" + pts.map(p => p[0] + "," + p[1]).join(" L");
@@ -1441,6 +1520,11 @@ function wireToneMeter(t) {
           <line x1="10" y1="75" x2="110" y2="75" stroke="#eadbc8" stroke-width="2"/>
           <path d="${TONE_PATHS[t.n]}" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="12 9" opacity="0.55"/>
           <path d="${userPath}" stroke="#33261d" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        el("tone-mine-slot").innerHTML = recUrl
+          ? `<div class="fb-row"><button id="tone-mine">🎧 My voice</button><button id="tone-target">🔊 The target</button></div>`
+          : "";
+        on("tone-mine", () => { try { new Audio(recUrl).play(); } catch (e) {} });
+        on("tone-target", () => speak(t.hanzi, 0.8));
         res.style.display = "block";
         if (detected === t.n) {
           fb.className = "feedback show good";
