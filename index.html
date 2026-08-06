@@ -848,7 +848,7 @@ function listenFor(accept, ui) {
     } else if (!speechHeard) {
       fail("The mic was on, but no speech reached it. The wrong microphone may be selected — run the 🎙️ Microphone check from the menu.");
     } else {
-      fail("I heard your voice but couldn't make out the words — say it a few times in one breath and have another go!");
+      fail("I heard your voice but couldn't quite make out the words — get a touch closer to the phone and have one more go.");
     }
   };
   const begin = () => {
@@ -1476,8 +1476,14 @@ function showCard(li, si, ii) {
       <button class="big blue" id="listen">🔊 Listen</button>
       <button class="big teal" id="slow">🐢 ${p.syll.length > 1 ? "Syllable by syllable" : "Slowly"}</button>
     </div>
-    ${micButton()}
-    ${p.syll.length === 1 ? `<p class="center" style="font-size:15px;color:#a08872;margin-top:2px">Tip: single sounds are tricky for the checker — say it a few times in one breath: "${p.pinyin} ${p.pinyin} ${p.pinyin}".</p>` : ""}
+    ${p.syll.length === 1 && p.ptones[0] > 0 ? `
+    <button class="big amber" id="tone-btn">🎤 Check me — say one single "${p.phon}"</button>
+    <div class="feedback" id="tone-fb"></div>
+    <div class="meter-box card" id="tone-res">
+      <svg width="200" height="142" viewBox="0 0 120 85" id="tone-res-svg"></svg>
+      <div class="legend">Dashed = target · Solid = your voice</div>
+      <div id="tone-mine-slot"></div>
+    </div>` : micButton()}
     <div class="btn-row">
       <button class="big grey" id="back">← Back</button>
       <button class="big green" id="next">Next →</button>
@@ -1486,7 +1492,8 @@ function showCard(li, si, ii) {
   wireTopbar();
   on("listen", () => speak(p.hanzi, 0.8));
   on("slow", () => p.syll.length > 1 ? speakSlow(p.syll) : speak(p.hanzi, 0.4));
-  wireMic(p);
+  if (p.syll.length === 1 && p.ptones[0] > 0) wireToneMeter({ n: p.ptones[0], phon: p.phon, hanzi: p.hanzi });
+  else wireMic(p);
   on("back", () => ii === 0 ? showSetIntro(li, si) : showCard(li, si, ii - 1));
   on("next", () => {
     if (ii < n - 1) showCard(li, si, ii + 1);
