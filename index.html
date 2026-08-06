@@ -793,14 +793,17 @@ function listenFor(accept, ui) {
     if (m.length) return m[m.length - 1];
     return heard.reduce((a, b) => (clean(b).length >= clean(a).length ? b : a), heard[0]);
   };
+  let watchdog = null;
   const settle = () => {
     if (resolved) return;
     resolved = true;
+    clearTimeout(watchdog);
     stopRec(() => ui.onresult(heard.some(matches), display(), recUrl));
   };
   const fail = (msg) => {
     if (resolved) return;
     resolved = true;
+    clearTimeout(watchdog);
     stopRec(() => ui.onerror(msg));
   };
   rec.onstart = ui.onstart;
@@ -839,7 +842,7 @@ function listenFor(accept, ui) {
   rec.onend = () => {
     if (resolved) return;
     if (heard.length) { settle(); return; }
-    if (recorder && !speechHeard) { recConflict(); return; }
+    if (recorder) { recConflict(); return; }
     if (!audioStarted) {
       fail("The microphone never opened — reload the page and check the mic permission (padlock next to the address).");
     } else if (!speechHeard) {
@@ -851,7 +854,16 @@ function listenFor(accept, ui) {
   const begin = () => {
     try { rec.start(); } catch (err) {
       fail("Couldn't start listening — try again in a second.");
+      return;
     }
+    // hard time limit: the listener must never hang the screen
+    watchdog = setTimeout(() => {
+      if (resolved) return;
+      try { rec.abort(); } catch (e) {}
+      if (heard.length) settle();
+      else if (recorder) recConflict();
+      else fail("The listener got stuck — tap 🎤 and have another go.");
+    }, 10000);
   };
   // best-effort recorder; recognition proceeds either way. Skipped
   // entirely on devices where the two have fought over the mic.
