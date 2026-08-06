@@ -1,5 +1,5 @@
 /* Offline cache — bump CACHE version whenever the app files change */
-const CACHE = "mandarin-v5";
+const CACHE = "mandarin-v6";
 const FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
