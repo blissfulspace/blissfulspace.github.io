@@ -287,6 +287,120 @@ const LESSON2_PHRASES = [
     accept: ["很高兴认识你", "高兴认识你", "认识你"], speak: true }
 ];
 
+const LESSON3_FAMILY = [
+  { hanzi: "儿子", pinyin: "érzi", english: "son", phon: "ar-dzuh",
+    syll: ["儿", "子"], psyll: ["ér", "zi"], ptones: [2, 0], accept: ["儿子"] },
+  { hanzi: "女儿", pinyin: "nǚ'ér", english: "daughter", phon: "nyoo-ar",
+    syll: ["女", "儿"], psyll: ["nǚ", "ér"], ptones: [3, 2], accept: ["女儿"] },
+  { hanzi: "丈夫", pinyin: "zhàngfu", english: "husband", phon: "jahng-foo",
+    syll: ["丈", "夫"], psyll: ["zhàng", "fu"], ptones: [4, 0], accept: ["丈夫"] },
+  { hanzi: "妻子", pinyin: "qīzi", english: "wife", phon: "chee-dzuh",
+    syll: ["妻", "子"], psyll: ["qī", "zi"], ptones: [1, 0], accept: ["妻子"] },
+  { hanzi: "妈妈", pinyin: "māma", english: "mum", phon: "mah-mah",
+    syll: ["妈", "妈"], psyll: ["mā", "ma"], ptones: [1, 0], accept: ["妈妈", "媽媽"] },
+  { hanzi: "爸爸", pinyin: "bàba", english: "dad", phon: "bah-bah",
+    syll: ["爸", "爸"], psyll: ["bà", "ba"], ptones: [4, 0], accept: ["爸爸"] },
+  { hanzi: "家", pinyin: "jiā", english: "family / home", phon: "jyah",
+    syll: ["家"], psyll: ["jiā"], ptones: [1], accept: ["家"] }
+];
+
+const LESSON3_PHRASES = [
+  { hanzi: "这是我丈夫", pinyin: "zhè shì wǒ zhàngfu", english: "This is my husband", phon: "juh shr wor jahng-foo",
+    syll: ["这", "是", "我", "丈", "夫"], psyll: ["zhè", "shì", "wǒ", "zhàng", "fu"], ptones: [4, 4, 3, 4, 0],
+    accept: ["这是我丈夫", "我丈夫"], speak: true,
+    note: "这是 (zhè shì) = \"this is\" — the all-purpose way to introduce anyone. Point politely and swap the last word: 这是我儿子, 这是我妈妈…" },
+  { hanzi: "我有一个儿子", pinyin: "wǒ yǒu yí ge érzi", english: "I have one son", phon: "wor yoh ee-guh ar-dzuh",
+    syll: ["我", "有", "一", "个", "儿", "子"], psyll: ["wǒ", "yǒu", "yí", "ge", "ér", "zi"], ptones: [3, 3, 2, 0, 2, 0],
+    accept: ["我有一个儿子", "有一个儿子"], speak: true,
+    spoken: { psyll: ["wó", "yǒu", "yí", "ge", "ér", "zi"], ptones: [2, 3, 2, 0, 2, 0] },
+    note: "Our old friend the double-dip: 我有 is two 3rd tones, so say <b>\"wor?\"</b> (rising) then <b>\"yoh\"</b> (dipping)." },
+  { hanzi: "我儿子住在杭州", pinyin: "wǒ érzi zhù zài Hángzhōu", english: "My son lives in Hangzhou", phon: "wor ar-dzuh joo dzeye hahng-joe",
+    syll: ["我", "儿", "子", "住", "在", "杭", "州"], psyll: ["wǒ", "ér", "zi", "zhù", "zài", "Háng", "zhōu"], ptones: [3, 2, 0, 4, 4, 2, 1],
+    accept: ["儿子住在杭州", "住在杭州"], speak: true,
+    note: "住在 (zhù zài) = \"lives in\". You'll use this constantly — swap the city for anywhere: 住在昆明, 住在英国." },
+  { hanzi: "他叫马丁", pinyin: "tā jiào Mǎdīng", english: "His name is Martin", phon: "tah jyaow mah-ding",
+    syll: ["他", "叫", "马", "丁"], psyll: ["tā", "jiào", "Mǎ", "dīng"], ptones: [1, 4, 3, 1],
+    accept: ["他叫"], speak: true,
+    note: "他 (tā) = he, 她 (also tā!) = she — they sound identical, only the writing differs. 马丁 (Mǎdīng) is how Chinese renders \"Martin\" — yes, it starts with the horse character!" }
+];
+
+const LESSON4_NUMBERS = [
+  { hanzi: "十一", pinyin: "shíyī", english: "eleven — 11 (ten-one!)", phon: "shr-ee",
+    syll: ["十", "一"], psyll: ["shí", "yī"], ptones: [2, 1], accept: ["十一", "11"],
+    note: "Numbers stack logically: 11 is \"ten-one\", 12 \"ten-two\", 20 \"two-ten\", 25 \"two-ten-five\". Learn 0–10 and you can build every number to 99!" },
+  { hanzi: "二十", pinyin: "èrshí", english: "twenty — 20 (two-ten)", phon: "ar-shr",
+    syll: ["二", "十"], psyll: ["èr", "shí"], ptones: [4, 2], accept: ["二十", "20"] },
+  { hanzi: "二十五", pinyin: "èrshíwǔ", english: "twenty-five — 25", phon: "ar-shr-woo",
+    syll: ["二", "十", "五"], psyll: ["èr", "shí", "wǔ"], ptones: [4, 2, 3], accept: ["二十五", "25"] },
+  { hanzi: "五十", pinyin: "wǔshí", english: "fifty — 50", phon: "woo-shr",
+    syll: ["五", "十"], psyll: ["wǔ", "shí"], ptones: [3, 2], accept: ["五十", "50"] },
+  { hanzi: "九十九", pinyin: "jiǔshíjiǔ", english: "ninety-nine — 99", phon: "jyoh-shr-jyoh",
+    syll: ["九", "十", "九"], psyll: ["jiǔ", "shí", "jiǔ"], ptones: [3, 2, 3], accept: ["九十九", "99"] },
+  { hanzi: "钱", pinyin: "qián", english: "money", phon: "chyen",
+    syll: ["钱"], psyll: ["qián"], ptones: [2], accept: ["钱"] },
+  { hanzi: "块", pinyin: "kuài", english: "yuan (unit of money)", phon: "kweye",
+    syll: ["块"], psyll: ["kuài"], ptones: [4], accept: ["块"],
+    note: "块 (kuài) is the everyday word for the yuan, like saying \"quid\" — 十块 = 10 yuan." }
+];
+
+const LESSON4_PHRASES = [
+  { hanzi: "多少钱？", pinyin: "duōshao qián?", english: "How much is it?", phon: "dwor-shaow chyen",
+    syll: ["多", "少", "钱"], psyll: ["duō", "shao", "qián"], ptones: [1, 0, 2],
+    accept: ["多少钱"], speak: true,
+    note: "THE market phrase. Point at anything and say it — you'll use this daily in Kunming." },
+  { hanzi: "十块钱", pinyin: "shí kuài qián", english: "10 yuan", phon: "shr kweye chyen",
+    syll: ["十", "块", "钱"], psyll: ["shí", "kuài", "qián"], ptones: [2, 4, 2],
+    accept: ["十块钱", "十块"], speak: true },
+  { hanzi: "太贵了！", pinyin: "tài guì le!", english: "Too expensive!", phon: "tie gway luh",
+    syll: ["太", "贵", "了"], psyll: ["tài", "guì", "le"], ptones: [4, 4, 0],
+    accept: ["太贵了"], speak: true,
+    note: "Essential bargaining! Say it with a smile and a shake of the head — haggling at markets is expected and friendly." },
+  { hanzi: "我六十三岁", pinyin: "wǒ liùshísān suì", english: "I'm 63 years old", phon: "wor lyoh-shr-sahn sway",
+    syll: ["我", "六", "十", "三", "岁"], psyll: ["wǒ", "liù", "shí", "sān", "suì"], ptones: [3, 4, 2, 1, 4],
+    accept: ["六十三岁", "三岁"], speak: true,
+    note: "岁 (suì) = years old. Swap in your own age — and don't be surprised if the reply is 你看起来很年轻 (\"you look very young!\")." },
+  { hanzi: "你多大？", pinyin: "nǐ duō dà?", english: "How old are you?", phon: "nee dwor dah",
+    syll: ["你", "多", "大"], psyll: ["nǐ", "duō", "dà"], ptones: [3, 1, 4],
+    accept: ["你多大", "多大"], speak: true,
+    note: "Asking someone's age is normal, friendly small talk in China — not rude at all!" }
+];
+
+const LESSON5_PLACES = [
+  { hanzi: "中国", pinyin: "Zhōngguó", english: "China", phon: "jong-gwor",
+    syll: ["中", "国"], psyll: ["Zhōng", "guó"], ptones: [1, 2], accept: ["中国"],
+    note: "Literally \"middle kingdom\" — 中 middle, 国 country." },
+  { hanzi: "英国", pinyin: "Yīngguó", english: "the UK / Britain", phon: "ying-gwor",
+    syll: ["英", "国"], psyll: ["Yīng", "guó"], ptones: [1, 2], accept: ["英国"] },
+  { hanzi: "昆明", pinyin: "Kūnmíng", english: "Kunming", phon: "kwun-ming",
+    syll: ["昆", "明"], psyll: ["Kūn", "míng"], ptones: [1, 2], accept: ["昆明"],
+    note: "Your future home! Known as 春城 — the Spring City — for its year-round mild weather." },
+  { hanzi: "杭州", pinyin: "Hángzhōu", english: "Hangzhou", phon: "hahng-joe",
+    syll: ["杭", "州"], psyll: ["Háng", "zhōu"], ptones: [2, 1], accept: ["杭州"] },
+  { hanzi: "哪里", pinyin: "nǎlǐ", english: "where?", phon: "nah-lee",
+    syll: ["哪", "里"], psyll: ["nǎ", "lǐ"], ptones: [3, 3], accept: ["哪里", "哪裡"],
+    spoken: { psyll: ["ná", "lǐ"], ptones: [2, 3] },
+    note: "Two 3rd tones again — so it's really said <b>\"nah?\"</b> (rising) <b>\"lee\"</b> (dipping)." },
+  { hanzi: "住", pinyin: "zhù", english: "to live (somewhere)", phon: "joo",
+    syll: ["住"], psyll: ["zhù"], ptones: [4], accept: ["住"] }
+];
+
+const LESSON5_PHRASES = [
+  { hanzi: "你住在哪里？", pinyin: "nǐ zhù zài nǎlǐ?", english: "Where do you live?", phon: "nee joo dzeye nah-lee",
+    syll: ["你", "住", "在", "哪", "里"], psyll: ["nǐ", "zhù", "zài", "nǎ", "lǐ"], ptones: [3, 4, 4, 3, 3],
+    accept: ["你住在哪里", "住在哪里", "住哪里"], speak: true },
+  { hanzi: "我住在昆明", pinyin: "wǒ zhù zài Kūnmíng", english: "I live in Kunming", phon: "wor joo dzeye kwun-ming",
+    syll: ["我", "住", "在", "昆", "明"], psyll: ["wǒ", "zhù", "zài", "Kūn", "míng"], ptones: [3, 4, 4, 1, 2],
+    accept: ["我住在昆明", "住在昆明"], speak: true },
+  { hanzi: "你是哪国人？", pinyin: "nǐ shì nǎ guó rén?", english: "Where are you from?", phon: "nee shr nah gwor run",
+    syll: ["你", "是", "哪", "国", "人"], psyll: ["nǐ", "shì", "nǎ", "guó", "rén"], ptones: [3, 4, 3, 2, 2],
+    accept: ["你是哪国人", "哪国人"], speak: true,
+    note: "Literally \"you are which-country person?\" — and you already know the answer: 我是英国人!" },
+  { hanzi: "我们要去中国", pinyin: "wǒmen yào qù Zhōngguó", english: "We're going to China", phon: "wor-mun yaow chyoo jong-gwor",
+    syll: ["我", "们", "要", "去", "中", "国"], psyll: ["wǒ", "men", "yào", "qù", "Zhōng", "guó"], ptones: [3, 0, 4, 4, 1, 2],
+    accept: ["要去中国", "去中国"], speak: true,
+    note: "我们 (wǒmen) = we — just \"I\" plus 们. 要去 (yào qù) = going to. Your whole plan, in one sentence!" }
+];
+
 const LESSONS = [
   {
     id: "lesson1",
@@ -360,6 +474,123 @@ const LESSONS = [
       { id: "l2-t-ba", type: "text", q: "八 (bā, eight) carries which tone?",
         options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 0 }
     ]
+  },
+  {
+    id: "lesson3",
+    title: "Family & people",
+    desc: "Son · daughter · husband · introducing the family",
+    sets: [
+      { name: "Family words", blurb: "The people in your life — including the very word for family itself.", items: LESSON3_FAMILY },
+      { name: "Talking about family", blurb: "Introduce Martin, and tell people about your son in Hangzhou.", items: LESSON3_PHRASES }
+    ],
+    quizPool: [
+      { id: "l3-w-erzi", type: "text", play: "儿子", q: "🔊 Which family member did you hear?",
+        options: ["Son", "Daughter", "Husband", "Wife"], answer: 0 },
+      { id: "l3-w-baba", type: "text", play: "爸爸", q: "🔊 Which family member did you hear?",
+        options: ["Mum", "Dad", "Son", "Wife"], answer: 1 },
+      { id: "l3-w-qizi", type: "text", play: "妻子", q: "🔊 Which family member did you hear?",
+        options: ["Wife", "Daughter", "Mum", "Husband"], answer: 0 },
+      { id: "l3-m-zhangfu", type: "text", q: "丈夫 (zhàngfu) means…?",
+        options: ["Son", "Brother", "Husband", "Friend"], answer: 2 },
+      { id: "l3-m-nver", type: "text", q: "How do you say \"daughter\"?",
+        options: ["érzi", "nǚ'ér", "māma", "qīzi"], answer: 1 },
+      { id: "l3-m-jia", type: "text", q: "家 (jiā) means…?",
+        options: ["School", "Family / home", "Shop", "Garden"], answer: 1 },
+      { id: "l3-m-zheshi", type: "text", q: "这是我丈夫 (zhè shì wǒ zhàngfu) means…?",
+        options: ["This is my husband", "He is my son", "My husband is out", "I love my husband"], answer: 0 },
+      { id: "l3-m-zhuzai", type: "text", q: "住在 (zhù zài) means…?",
+        options: ["to eat at", "to live in", "to travel to", "to work at"], answer: 1 },
+      { id: "l3-m-sonhz", type: "text", q: "How do you say \"My son lives in Hangzhou\"?",
+        options: ["wǒ érzi zhù zài Hángzhōu", "wǒ zhù zài Hángzhōu", "wǒ érzi shì Hángzhōu", "érzi hěn hǎo"], answer: 0 },
+      { id: "l3-m-yige", type: "text", q: "我有一个儿子 (wǒ yǒu yí ge érzi) means…?",
+        options: ["I have one son", "My son is one", "I want a son", "This is my son"], answer: 0 },
+      { id: "l3-t-jia", type: "text", q: "家 (jiā) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 0 },
+      { id: "l3-t-zhu", type: "text", q: "住 (zhù) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 3 },
+      { id: "l3-t-er", type: "text", q: "儿 (ér) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 1 },
+      { id: "l3-m-mading", type: "text", q: "他叫马丁 (tā jiào Mǎdīng) means…?",
+        options: ["His name is Martin", "He's calling Martin", "Martin is here", "My name is Martin"], answer: 0 }
+    ]
+  },
+  {
+    id: "lesson4",
+    title: "Big numbers, age & money",
+    desc: "11–99 · how much? · too expensive! · your age",
+    sets: [
+      { name: "Numbers 11–99 & money", blurb: "The brilliant news: Chinese numbers just stack. 25 is literally \"two-ten-five\". You already know all the pieces!", items: LESSON4_NUMBERS },
+      { name: "Age & prices", blurb: "Market survival and friendly small talk — with the bargaining phrase you'll enjoy most.", items: LESSON4_PHRASES }
+    ],
+    quizPool: [
+      { id: "l4-n-20", type: "text", play: "二十", q: "🔊 Which number did you hear?",
+        options: ["12", "20", "25", "50"], answer: 1 },
+      { id: "l4-n-11", type: "text", play: "十一", q: "🔊 Which number did you hear?",
+        options: ["11", "10", "12", "21"], answer: 0 },
+      { id: "l4-n-50", type: "text", play: "五十", q: "🔊 Which number did you hear?",
+        options: ["15", "55", "50", "5"], answer: 2 },
+      { id: "l4-n-99", type: "text", play: "九十九", q: "🔊 Which number did you hear?",
+        options: ["99", "89", "19", "90"], answer: 0 },
+      { id: "l4-n-25", type: "text", play: "二十五", q: "🔊 Which number did you hear?",
+        options: ["25", "52", "20", "15"], answer: 0 },
+      { id: "l4-m-duoshao", type: "text", q: "多少钱？ (duōshao qián) means…?",
+        options: ["How much is it?", "Where is the money?", "Too expensive!", "I have no money"], answer: 0 },
+      { id: "l4-m-taigui", type: "text", q: "太贵了！ (tài guì le) means…?",
+        options: ["Very cheap!", "Too expensive!", "How much?", "I'll take it"], answer: 1 },
+      { id: "l4-m-sui", type: "text", q: "岁 (suì) is the word used for…?",
+        options: ["money", "age — years old", "weight", "the time"], answer: 1 },
+      { id: "l4-m-25say", type: "text", q: "How do you say 25?",
+        options: ["èrshíwǔ — two-ten-five", "wǔshí'èr — five-ten-two", "èrwǔ — two-five", "shí'èrwǔ — ten-two-five"], answer: 0 },
+      { id: "l4-m-age", type: "text", q: "我六十三岁 (wǒ liùshísān suì) means…?",
+        options: ["I'm 63 years old", "I have 63 yuan", "It's 6:30", "I live at number 63"], answer: 0 },
+      { id: "l4-m-howold", type: "text", q: "How do you ask \"How old are you?\"",
+        options: ["nǐ duō dà?", "nǐ hǎo ma?", "duōshao qián?", "nǐ jiào shénme?"], answer: 0 },
+      { id: "l4-t-qian", type: "text", q: "钱 (qián, money) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 1 },
+      { id: "l4-t-kuai", type: "text", q: "块 (kuài) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 3 },
+      { id: "l4-m-10kuai", type: "text", q: "十块钱 (shí kuài qián) means…?",
+        options: ["10 yuan", "10 items", "very expensive", "free"], answer: 0 }
+    ]
+  },
+  {
+    id: "lesson5",
+    title: "Places & where you live",
+    desc: "China · Kunming · Hangzhou · where do you live?",
+    sets: [
+      { name: "Places", blurb: "The places in your story — including your future home city.", items: LESSON5_PLACES },
+      { name: "Where do you live?", blurb: "Put it all together: the questions and answers of everyday introductions.", items: LESSON5_PHRASES }
+    ],
+    quizPool: [
+      { id: "l5-m-zhongguo", type: "text", q: "中国 (Zhōngguó) means…?",
+        options: ["England", "China", "Kunming", "Beijing"], answer: 1 },
+      { id: "l5-m-nali", type: "text", q: "哪里 (nǎlǐ) means…?",
+        options: ["when", "who", "where", "why"], answer: 2 },
+      { id: "l5-m-wherelive", type: "text", q: "How do you ask \"Where do you live?\"",
+        options: ["nǐ zhù zài nǎlǐ?", "nǐ shì shéi?", "nǐ hǎo ma?", "nǐ duō dà?"], answer: 0 },
+      { id: "l5-m-livekm", type: "text", q: "我住在昆明 (wǒ zhù zài Kūnmíng) means…?",
+        options: ["I live in Kunming", "I'm going to Kunming", "Kunming is lovely", "I was born in Kunming"], answer: 0 },
+      { id: "l5-m-whichcountry", type: "text", q: "你是哪国人？ (nǐ shì nǎ guó rén) asks…?",
+        options: ["Where are you from?", "Where do you live?", "Who are you?", "Are you Chinese?"], answer: 0 },
+      { id: "l5-m-going", type: "text", q: "我们要去中国 (wǒmen yào qù Zhōngguó) means…?",
+        options: ["We're going to China", "We live in China", "We love China", "We are Chinese"], answer: 0 },
+      { id: "l5-w-hz", type: "text", play: "杭州", q: "🔊 Which place did you hear?",
+        options: ["Hangzhou", "Kunming", "China", "the UK"], answer: 0 },
+      { id: "l5-w-km", type: "text", play: "昆明", q: "🔊 Which place did you hear?",
+        options: ["Kunming", "Hangzhou", "England", "Beijing"], answer: 0 },
+      { id: "l5-w-zg", type: "text", play: "中国", q: "🔊 Which place did you hear?",
+        options: ["China", "the UK", "Kunming", "Hangzhou"], answer: 0 },
+      { id: "l5-t-zhong", type: "text", q: "中 (zhōng) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 0 },
+      { id: "l5-t-hang", type: "text", q: "杭 (háng) carries which tone?",
+        options: ["1st — flat", "2nd — rising", "3rd — dipping", "4th — falling"], answer: 1 },
+      { id: "l5-k-nali", type: "text", q: "哪里 (nǎlǐ) is two 3rd tones in a row — so it's actually spoken as…?",
+        options: ["nálǐ — the first one rises", "nǎlí — the second one rises", "both keep dipping", "nàlì — both fall"], answer: 0 },
+      { id: "l5-m-uk", type: "text", q: "英国 (Yīngguó) means…?",
+        options: ["America", "the UK", "France", "Spain"], answer: 1 },
+      { id: "l5-m-zhu", type: "text", q: "住 (zhù) means…?",
+        options: ["to live", "to eat", "to go", "to buy"], answer: 0 }
+    ]
   }
 ];
 
@@ -386,7 +617,9 @@ const PINYIN = {
   "米":"mǐ","面":"miàn","明":"míng","名":"míng","命":"mìng","摸":"mō","磨":"mó","抹":"mǒ","末":"mò","墨":"mò",
   "母":"mǔ","木":"mù","目":"mù","拿":"ná","纳":"nà","男":"nán","南":"nán","难":"nán","脑":"nǎo","闹":"nào",
   "孩":"hái","还":"hái","海":"hǎi","害":"hài","后":"hòu","猴":"hóu","吼":"hǒu","厚":"hòu","内":"nèi","念":"niàn",
-  "叫":"jiào","字":"zì","高":"gāo","兴":"xìng","认":"rèn","识":"shi","莎":"shā","拉":"lā","萨":"sà","日":"rì","热":"rè"
+  "叫":"jiào","字":"zì","高":"gāo","兴":"xìng","认":"rèn","识":"shi","莎":"shā","拉":"lā","萨":"sà","日":"rì","热":"rè",
+  "儿":"ér","子":"zi","女":"nǚ","丈":"zhàng","夫":"fu","妻":"qī","家":"jiā","住":"zhù","杭":"háng","州":"zhōu",
+  "个":"ge","丁":"dīng","块":"kuài","钱":"qián","多":"duō","少":"shǎo","岁":"suì","贵":"guì","太":"tài","昆":"kūn"
 };
 
 function pinyinFor(str) {
